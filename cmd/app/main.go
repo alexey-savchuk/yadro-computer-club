@@ -36,6 +36,7 @@ func main() {
 		preamble.Cost,
 	)
 
+	fmt.Fprintln(writer, preamble.OpenTime.Format("15:04"))
 	for {
 		line, err := reader.ReadString('\n')
 		if err == io.EOF {
@@ -68,6 +69,7 @@ func main() {
 	for _, outEvent := range outEvents {
 		fmt.Fprintln(writer, outEvent)
 	}
+	fmt.Fprintln(writer, preamble.CloseTime.Format("15:04"))
 
 	profit := club.GetStatistics()
 	for _, p := range profit {
