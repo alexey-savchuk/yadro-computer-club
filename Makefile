@@ -1,5 +1,7 @@
+image_name = "computer-club:alexeysavchuk"
+
 build:
-	@docker build -t computer-club:alexeysavchuk .
+	@docker build -t $(image_name) .
 
 run:
 	@if [ -z "$(FILE)" ]; then \
@@ -9,7 +11,7 @@ run:
 		echo "The specified path does not exist or is not a file: $(FILE)"; \
 		exit 1; \
 	fi; \
-	docker run --rm --volume $(realpath $(FILE)):/app/data/file:ro computer-club:alexeysavchuk; \
+	docker run --rm --volume $(realpath $(FILE)):/app/data/file:ro $(image_name); \
 
 clean:
-	@docker rmi computer-club:alexeysavchuk
+	@docker rmi $(image_name)

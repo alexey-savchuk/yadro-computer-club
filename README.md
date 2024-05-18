@@ -8,13 +8,20 @@
 
 ### Как запустить
 ```sh
-make build
-make run FILE="/path/to/file"
+make build                    # сборка
+make run FILE="/path/to/file" # запуск
 ```
 или
 ```sh
 make build run FILE="/path/to/file"
 ```
+
+### Дополнительно
+Удалить Docker-образ, созданный командой ```make build```, можно так
+```sh
+make clean
+```
+
 
 [^1]: realpath - стандартная команда Linux для получения абсолютного пути.
     Скорее всего уже установлена по-умолчанию, но на всякий случай дам ссылки
