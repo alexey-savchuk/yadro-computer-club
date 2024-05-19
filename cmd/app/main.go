@@ -12,21 +12,28 @@ import (
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 	writer := bufio.NewWriter(os.Stdout)
-	defer writer.Flush()
 
+	err := doWork(reader, writer)
+	writer.Flush()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func doWork(reader *bufio.Reader, writer *bufio.Writer) error {
 	lines := []string{}
 	for i := 0; i < 3; i++ {
 		line, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to read line: %s\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to read line: %w", err)
 		}
 		lines = append(lines, line)
 	}
 
 	preamble, err := system.ParsePreamble(lines)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to parse preamble: %s\n", err)
+		return fmt.Errorf("failed to parse preamble: %w", err)
 	}
 
 	club := system.NewComputerClubSystem(
@@ -43,20 +50,17 @@ func main() {
 			break
 		}
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to read line: %s\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to read line: %w", err)
 		}
 
 		inEvent, err := system.ParseEvent(line)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to parse event: %s\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to parse event: %w", err)
 		}
 
 		outEvents, err := club.Process(inEvent)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to process event: %s\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to process event: %w", err)
 		}
 
 		fmt.Fprintln(writer, inEvent)
@@ -68,8 +72,7 @@ func main() {
 	if !club.IsClubClose() {
 		outEvents, err := club.CloseClub()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to close club: %s\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to close club: %w", err)
 		}
 		for _, outEvent := range outEvents {
 			fmt.Fprintln(writer, outEvent)
@@ -88,4 +91,6 @@ func main() {
 			hours, minutes,
 		)
 	}
+
+	return nil
 }
