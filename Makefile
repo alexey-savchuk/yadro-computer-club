@@ -11,7 +11,7 @@ run:
 		echo "The specified path does not exist or is not a file: $(FILE)"; \
 		exit 1; \
 	fi; \
-	docker run --rm --volume $(realpath $(FILE)):/app/data/file:ro $(image_name); \
+	docker run --rm --volume $(realpath $(FILE)):/app/file:ro $(image_name); \
 
 clean:
 	@docker rmi $(image_name)
