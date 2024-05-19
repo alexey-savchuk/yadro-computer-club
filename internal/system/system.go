@@ -12,6 +12,7 @@ type ComputerClubSystem struct {
 	closeTime        time.Time
 	cost             int
 	currentTime      time.Time
+	gotFirstEvent    bool
 	knownClients     map[string]struct{}
 	waitingClients   map[string]struct{}
 	clientQueue      []string
@@ -41,6 +42,7 @@ func NewComputerClubSystem(
 		cost:             cost,
 		openTime:         openTime,
 		closeTime:        closeTime,
+		gotFirstEvent:    false,
 		knownClients:     make(map[string]struct{}),
 		waitingClients:   make(map[string]struct{}),
 		clientPerTable:   make(map[int]string),
@@ -52,6 +54,16 @@ func NewComputerClubSystem(
 }
 
 func (s *ComputerClubSystem) Process(e Event) ([]Event, error) {
+	if !s.gotFirstEvent {
+		s.currentTime = e.Time
+		s.gotFirstEvent = true
+	}
+	if e.Time.Before(s.currentTime) {
+		return nil, fmt.Errorf(
+			"event %q time %s is before last event time %s",
+			e, e.Time.Format("15:04"), s.currentTime.Format("15:04"),
+		)
+	}
 	s.currentTime = e.Time
 
 	var dispatcher eventDispatcher
@@ -59,6 +71,13 @@ func (s *ComputerClubSystem) Process(e Event) ([]Event, error) {
 	case InputEventEnter:
 		dispatcher = s.clientEnter
 	case InputEventTakeTable:
+		tableNum := e.Body[1].(int)
+		if tableNum < 1 || tableNum > s.numTables {
+			return nil, fmt.Errorf(
+				"event %q table number %d is greater than number of tables %d",
+				e, tableNum, s.numTables,
+			)
+		}
 		dispatcher = s.clientTakeTable
 		dispatcher = s.clintUnknownMiddleware(dispatcher)
 	case InputEventWait:
@@ -73,6 +92,10 @@ func (s *ComputerClubSystem) Process(e Event) ([]Event, error) {
 
 	dispatcher = s.closeClubMiddleware(dispatcher)
 	return dispatcher(e.Body...), nil
+}
+
+func (s *ComputerClubSystem) IsClubClose() bool {
+	return !(s.currentTime.After(s.openTime) && s.currentTime.Before(s.closeTime))
 }
 
 func (s *ComputerClubSystem) CloseClub() ([]Event, error) {
@@ -124,7 +147,7 @@ func (s *ComputerClubSystem) clientEnter(args ...any) []Event {
 		})
 		return events
 	}
-	if s.isClubClose(s.currentTime) {
+	if s.IsClubClose() {
 		events = append(events, Event{
 			Time: s.currentTime,
 			ID:   OutputEventError,
@@ -265,7 +288,7 @@ func (s *ComputerClubSystem) clintUnknownMiddleware(next eventDispatcher) eventD
 // removed from the club before processing the incoming event
 func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDispatcher {
 	return func(args ...any) []Event {
-		if !s.isClubClose(s.currentTime) {
+		if !s.IsClubClose() {
 			return next(args...)
 		}
 
@@ -306,10 +329,6 @@ func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDisp
 func (s *ComputerClubSystem) isClientInClub(name string) bool {
 	_, ok := s.knownClients[name]
 	return ok
-}
-
-func (s *ComputerClubSystem) isClubClose(time time.Time) bool {
-	return !(time.After(s.openTime) && time.Before(s.closeTime))
 }
 
 func (s *ComputerClubSystem) clientCleanup(name string) {

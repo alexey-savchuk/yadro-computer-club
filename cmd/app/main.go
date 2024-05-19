@@ -65,9 +65,15 @@ func main() {
 		}
 	}
 
-	outEvents, _ := club.CloseClub()
-	for _, outEvent := range outEvents {
-		fmt.Fprintln(writer, outEvent)
+	if !club.IsClubClose() {
+		outEvents, err := club.CloseClub()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to close club: %s\n", err)
+			os.Exit(1)
+		}
+		for _, outEvent := range outEvents {
+			fmt.Fprintln(writer, outEvent)
+		}
 	}
 	fmt.Fprintln(writer, preamble.CloseTime.Format("15:04"))
 
