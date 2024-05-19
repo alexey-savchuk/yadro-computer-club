@@ -39,12 +39,16 @@ func ParseTime(s string) (time.Time, error) {
 	minutes := parts[1]
 
 	if len(hours) != 2 || len(minutes) != 2 {
-		return time.Time{}, fmt.Errorf("invalid time format %s", s)
+		return time.Time{}, fmt.Errorf(
+			"hours and minutes must be two digits, want e.g. 09:02, but got %s", s,
+		)
 	}
 
 	for _, r := range hours + minutes {
 		if !unicode.IsDigit(r) {
-			return time.Time{}, fmt.Errorf("invalid time format %s", s)
+			return time.Time{}, fmt.Errorf(
+				"found not digit while parsing time %s", s,
+			)
 		}
 	}
 
@@ -65,11 +69,11 @@ func ParseTime(s string) (time.Time, error) {
 	}
 
 	if hoursInt > 23 {
-		return time.Time{}, fmt.Errorf("invalid time format %s", s)
+		return time.Time{}, fmt.Errorf("hours must be less than 24, got %s", s)
 	}
 
 	if minutesInt > 59 {
-		return time.Time{}, fmt.Errorf("invalid time format %s", s)
+		return time.Time{}, fmt.Errorf("minutes must be less than 60, got %s", s)
 	}
 
 	time := time.Date(0, 0, 0, hoursInt, minutesInt, 0, 0, time.UTC)
@@ -162,7 +166,7 @@ func ParseEvent(s string) (Event, error) {
 	body := make([]any, 0)
 
 	switch id {
-	case InputEventTakeTable, OutputEventTakeTable:
+	case InputEventTakeTable:
 		if len(parts) != 4 {
 			return Event{}, fmt.Errorf(
 				"invalid event %q format, event #%d requires <name> <table number> body",
@@ -179,18 +183,7 @@ func ParseEvent(s string) (Event, error) {
 		}
 		body = append(body, name)
 		body = append(body, tableNum)
-	case OutputEventError:
-		if len(parts) != 3 {
-			return Event{}, fmt.Errorf(
-				"invalid event %q format: event #%d requires <error> body",
-				s, id,
-			)
-		}
-		if len(parts[2]) == 0 {
-			return Event{}, fmt.Errorf("empty event %q <error>", s)
-		}
-		body = append(body, parts[2])
-	case InputEventEnter, InputEventWait, InputEventLeave, OutputEventLeave:
+	case InputEventEnter, InputEventWait, InputEventLeave:
 		if len(parts) != 3 {
 			return Event{}, fmt.Errorf(
 				"invalid event %q format, event #%d requires <name> body",
