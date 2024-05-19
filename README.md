@@ -46,7 +46,9 @@ make: *** [Makefile:7: run] Error 1
 make clean
 ```
 
-[^1]: realpath - стандартная команда Linux для получения абсолютного пути.
-    Скорее всего уже установлена по-умолчанию, но на всякий случай дам ссылки
+[^1]: realpath - стандартная команда GNU/Linux для получения абсолютного пути. Я
+    использую её в Makefile для обработки пути к файлу, передаваемого в
+    переменной FILE. Скорее всего команда уже установлена по-умолчанию, но на
+    всякий случай дам ссылки
     - [realpath в Ubuntu](https://manpages.ubuntu.com/manpages/trusty/en/man1/realpath.1.html)
     - [realpath в Arch](https://man.archlinux.org/man/realpath.1.en)
