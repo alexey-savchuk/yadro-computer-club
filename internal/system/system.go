@@ -12,6 +12,7 @@ type ComputerClubSystem struct {
 	closeTime        time.Time
 	cost             int
 	currentTime      time.Time
+	currentEvent     Event
 	gotFirstEvent    bool
 	knownClients     map[string]struct{}
 	waitingClients   map[string]struct{}
@@ -65,6 +66,7 @@ func (s *ComputerClubSystem) Process(e Event) ([]Event, error) {
 		)
 	}
 	s.currentTime = e.Time
+	s.currentEvent = e
 
 	var dispatcher eventDispatcher
 	switch e.ID {
@@ -95,7 +97,7 @@ func (s *ComputerClubSystem) Process(e Event) ([]Event, error) {
 }
 
 func (s *ComputerClubSystem) IsClubClose() bool {
-	return !(s.currentTime.After(s.openTime) && s.currentTime.Before(s.closeTime))
+	return !(!s.currentTime.Before(s.openTime) && s.currentTime.Before(s.closeTime))
 }
 
 func (s *ComputerClubSystem) CloseClub() ([]Event, error) {
@@ -289,8 +291,11 @@ func (s *ComputerClubSystem) clintUnknownMiddleware(next eventDispatcher) eventD
 // removed from the club before processing the incoming event
 func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDispatcher {
 	return func(args ...any) []Event {
+		events := make([]Event, 0)
+
 		if !s.IsClubClose() {
-			return next(args...)
+			events = append(events, s.currentEvent)
+			return append(events, next(args...)...)
 		}
 
 		eventTime := s.currentTime
@@ -305,14 +310,12 @@ func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDisp
 			return clients[i] < clients[j]
 		})
 
-		leaveEvents := make([]Event, 0, len(clients))
-
 		for _, name := range clients {
 			if freeTable, ok := s.tablePerClient[name]; ok {
 				s.calcStats(freeTable)
 			}
 
-			leaveEvents = append(leaveEvents, Event{
+			events = append(events, Event{
 				Time: s.closeTime,
 				ID:   OutputEventLeave,
 				Body: []any{
@@ -328,7 +331,8 @@ func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDisp
 
 		s.currentTime = eventTime
 
-		return append(leaveEvents, next(args...)...)
+		events = append(events, s.currentEvent)
+		return append(events, next(args...)...)
 	}
 }
 

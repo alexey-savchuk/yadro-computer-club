@@ -63,7 +63,6 @@ func doWork(reader *bufio.Reader, writer *bufio.Writer) error {
 			return fmt.Errorf("failed to process event: %w", err)
 		}
 
-		fmt.Fprintln(writer, inEvent)
 		for _, outEvent := range outEvents {
 			fmt.Fprintln(writer, outEvent)
 		}

@@ -29,8 +29,7 @@ Out:
 09:00
 08:52 1 John               // John comes outside working hours
 08:52 13 NotOpenYet        // got error "NotOpenYet"
-09:00 1 Mary               // Mary comes outside working hours
-09:00 13 NotOpenYet        // got error "NotOpenYet"
+09:00 1 Mary               // Mary comes during working hours
 09:05 1 Tom                // Tom comes
 09:06 1 Tom                // Tom's already the in club
 09:06 13 YouShallNotPass   // got error "YouShallNotPass"
@@ -60,9 +59,15 @@ Out:
 12:00 4 Tom                // Tom leaves. 3 table += 10 (11:10-12:00)
 12:00 12 Paul 3            // Paul was waiting in the queue and takes left table 3
 12:10 4 Anna               // Anna leaves. 1 table += 10 (11:15-12:10)
-12:10 12 Jane 1            // Jane was waiting in the queue and takes left table 1
+12:10 12 Jane 1            // Jane was waiting in the queue and takes left table1
+
+// Emma comes to the club outside working hours and triggers middleware that closes
+// the club and all clients inside go away; then Emma's event is processed.
 19:00 11 Jane              // Club's closed. Jane leaves. 1 table += 70 (12:10-19:00)
+19:00 11 Mary              // Club's closed. Mary leaves
 19:00 11 Paul              // Club's closed. Paul leaves. 3 table += 70 (12:00-19:00)
+19:15 1 Emma               // Emma comes outside working hours
+19:15 13 NotOpenYet        // got error "NotOpenYet"
 19:00
 1 100 08:55
 2 10 00:10
