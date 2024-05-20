@@ -1,0 +1,69 @@
+In:
+3
+09:00 19:00
+10
+08:52 1 John
+09:00 1 Mary
+09:05 1 Tom
+09:06 1 Tom
+09:20 1 Anna
+09:45 1 Paul
+09:50 1 Lisa
+10:00 1 Jane
+10:00 2 Tom 1
+10:03 3 Mark
+10:10 3 Anna
+10:15 3 Paul
+10:20 3 Jane
+10:25 3 Lisa
+11:00 2 Tom 1
+11:05 2 Anna 2
+11:06 2 Anna 1
+11:10 2 Tom 3
+11:15 2 Anna 1
+12:00 4 Tom
+12:10 4 Anna
+19:15 1 Emma
+
+Out:
+09:00
+08:52 1 John               // John comes outside working hours
+08:52 13 NotOpenYet        // got error "NotOpenYet"
+09:00 1 Mary               // Mary comes outside working hours
+09:00 13 NotOpenYet        // got error "NotOpenYet"
+09:05 1 Tom                // Tom comes
+09:06 1 Tom                // Tom's already the in club
+09:06 13 YouShallNotPass   // got error "YouShallNotPass"
+09:20 1 Anna
+09:45 1 Paul
+09:50 1 Lisa
+10:00 1 Jane
+10:00 2 Tom 1              // Tom takes table 1
+10:03 3 Mark               // Mark waits, Mark's not in the club
+10:03 13 ClientUnknown     // got error "ClientUnknown"
+10:10 3 Anna               // Anna waits
+10:10 13 ICanWaitNoLonger!
+10:15 3 Paul               // Paul waits
+10:15 13 ICanWaitNoLonger!
+10:20 3 Jane               // Jane waits, the waiting queue is full (size = 3)
+10:20 13 ICanWaitNoLonger!
+10:25 3 Lisa               // Lisa waits, the queue is full, Lisa leaves
+10:25 13 ICanWaitNoLonger!
+10:25 11 Lisa              // Lisa leaves because the queue is full
+11:00 2 Tom 1              // Tom takes table 1 but it's busy
+11:00 13 PlaceIsBusy       // got error "PlaceIsBusy"
+11:05 2 Anna 2             // Anna takes table 2
+11:06 2 Anna 1             // Anna changes table but it's busy
+11:06 13 PlaceIsBusy       // got error "PlaceIsBusy"
+11:10 2 Tom 3              // Tom changes table from 1 to 3. 1 table += 20 (10:00-11:10)
+11:15 2 Anna 1             // Anna changes table form 2 to 1. 2 table += 10 (11:05-11:15)
+12:00 4 Tom                // Tom leaves. 3 table += 10 (11:10-12:00)
+12:00 12 Paul 3            // Paul was waiting in the queue and takes left table 3
+12:10 4 Anna               // Anna leaves. 1 table += 10 (11:15-12:10)
+12:10 12 Jane 1            // Jane was waiting in the queue and takes left table 1
+19:00 11 Jane              // Club's closed. Jane leaves. 1 table += 70 (12:10-19:00)
+19:00 11 Paul              // Club's closed. Paul leaves. 3 table += 70 (12:00-19:00)
+19:00
+1 100 08:55
+2 10 00:10
+3 90 07:50

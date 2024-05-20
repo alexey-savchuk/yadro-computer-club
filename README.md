@@ -28,6 +28,8 @@ make build run FILE="/path/to/file"
   нарушен порядок событий: ```09:41 1 client1``` до ```09:20 1 client2```
 - [testdata/06_too_big_table_num.txt](testdata/06_too_big_table_num.txt) -
   несуществующий номер стола: ```10:25 2 client2 5```
+- [testdata/07_example_1.txt](testdata/07_example_1.txt) - ещё один пример, в файле
+  [testdata/07_example_1.desc.txt](testdata/07_example_1.desc.txt) приведено описание примера
 
 Пример запуска
 ```sh
