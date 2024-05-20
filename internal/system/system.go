@@ -364,8 +364,6 @@ func (s *ComputerClubSystem) calcStats(
 	startTime := s.startPlayTime[tableNum]
 	endTime := s.currentTime
 
-	fmt.Println(tableNum, startTime, endTime)
-
 	duration := endTime.Sub(startTime)
 
 	hours := int(duration.Hours())
