@@ -177,6 +177,7 @@ func (s *ComputerClubSystem) clientTakeTable(args ...any) []Event {
 
 	if freeTable, ok := s.tablePerClient[name]; ok {
 		s.calcStats(freeTable)
+		delete(s.clientPerTable, freeTable)
 	}
 
 	s.tablePerClient[name] = tableNum
@@ -292,6 +293,9 @@ func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDisp
 			return next(args...)
 		}
 
+		eventTime := s.currentTime
+		s.currentTime = s.closeTime
+
 		clients := make([]string, 0, len(s.knownClients))
 		for name := range s.knownClients {
 			clients = append(clients, name)
@@ -302,6 +306,7 @@ func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDisp
 		})
 
 		leaveEvents := make([]Event, 0, len(clients))
+
 		for _, name := range clients {
 			if freeTable, ok := s.tablePerClient[name]; ok {
 				s.calcStats(freeTable)
@@ -315,12 +320,13 @@ func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDisp
 				},
 			})
 		}
-
 		s.knownClients = make(map[string]struct{})
 		s.clientQueue = make([]string, 0)
 		s.clientPerTable = make(map[int]string)
 		s.tablePerClient = make(map[string]int)
 		s.startPlayTime = make(map[int]time.Time)
+
+		s.currentTime = eventTime
 
 		return append(leaveEvents, next(args...)...)
 	}
@@ -329,6 +335,17 @@ func (s *ComputerClubSystem) closeClubMiddleware(next eventDispatcher) eventDisp
 func (s *ComputerClubSystem) isClientInClub(name string) bool {
 	_, ok := s.knownClients[name]
 	return ok
+}
+
+func (s *ComputerClubSystem) removeFromWaiting(name string) {
+	delete(s.waitingClients, name)
+
+	for i, client := range s.clientQueue {
+		if client == name {
+			s.clientQueue = append(s.clientQueue[:i], s.clientQueue[i+1:]...)
+			break
+		}
+	}
 }
 
 func (s *ComputerClubSystem) clientCleanup(name string) {
@@ -347,6 +364,8 @@ func (s *ComputerClubSystem) calcStats(
 	startTime := s.startPlayTime[tableNum]
 	endTime := s.currentTime
 
+	fmt.Println(tableNum, startTime, endTime)
+
 	duration := endTime.Sub(startTime)
 
 	hours := int(duration.Hours())
@@ -356,15 +375,4 @@ func (s *ComputerClubSystem) calcStats(
 
 	s.profitPerTable[tableNum] += hours * s.cost
 	s.durationPerTable[tableNum] += duration
-}
-
-func (s *ComputerClubSystem) removeFromWaiting(name string) {
-	delete(s.waitingClients, name)
-
-	for i, client := range s.clientQueue {
-		if client == name {
-			s.clientQueue = append(s.clientQueue[:i], s.clientQueue[i+1:]...)
-			break
-		}
-	}
 }
