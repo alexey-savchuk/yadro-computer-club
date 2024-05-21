@@ -5,7 +5,7 @@ build:
 
 run:
 	@if [ -z "$(FILE)" ]; then \
-		echo "No file provided. Please specify a file path using PATH=\"/path/to/file\""; \
+		echo "No file provided. Please specify a file path using FILE=\"/path/to/file\""; \
 		exit 1; \
 	elif [ ! -f "$(FILE)" ]; then \
 		echo "The specified path does not exist or is not a file: $(FILE)"; \
